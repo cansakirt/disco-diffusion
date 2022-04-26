@@ -1031,7 +1031,7 @@ def do_run():
       
       # Inits if not video frames
       if args.animation_mode != "Video Input":
-        if args.init_image == '':
+        if args.init_image in ['','none', 'None', 'NONE']:
           init_image = None
         else:
           init_image = args.init_image
@@ -1109,6 +1109,8 @@ def do_run():
                 blendedImage = cv2.addWeighted(newWarpedImg, blend_factor, oldWarpedImg,1-blend_factor, 0.0)
                 cv2.imwrite(f'{batchFolder}/{filename}',blendedImage)
                 next_step_pil.save(f'{img_filepath}') # save it also as prev_frame to feed next iteration
+                if vr_mode:
+                  generate_eye_views(TRANSLATION_SCALE,batchFolder,filename,frame_num,midas_model, midas_transform)
                 continue
               else:
                 #if not a skip frame, will run diffusion and need to blend.
@@ -1414,7 +1416,7 @@ def generate_eye_views(trans_scale,batchFolder,filename,frame_num,midas_model, m
                                                       rot_mat, translate_xyz, args.near_plane, args.far_plane,
                                                       args.fov, padding_mode=args.padding_mode,
                                                       sampling_mode=args.sampling_mode, midas_weight=args.midas_weight,spherical=True)
-      eye_file_path = batchFolder+f"/frame_{frame_num-1:04}" + ('_l' if i==0 else '_r')+'.png'
+      eye_file_path = batchFolder+f"/frame_{frame_num:04}" + ('_l' if i==0 else '_r')+'.png'
       transformed_image.save(eye_file_path)
 
 def save_settings():
@@ -1994,12 +1996,12 @@ vr_eye_angle = 0.5 #@param{type:"number"}
 #@markdown interpupillary distance (between the eyes)
 vr_ipd = 5.0 #@param{type:"number"}
 
-#insist turbo be used only w 3d anim.
+#insist VR be used only w 3d anim.
 if vr_mode and animation_mode != '3D':
   print('=====')
   print('VR mode only available with 3D animations. Disabling VR.')
   print('=====')
-  turbo_mode = False
+  vr_mode = False
 
 
 def parse_key_frames(string, prompt_parser=None):
